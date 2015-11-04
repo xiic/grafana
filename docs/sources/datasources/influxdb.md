@@ -72,6 +72,8 @@ You can switch to raw query mode by pressing the pen icon.
 - $tag_hostname = replaced with the value of the hostname tag
 - You can also use [[tag_hostname]] pattern replacement syntax
 
+Note: Tags can only be used if used in the ```sql GROUP BY``` clause.
+
 ### Templating
 You can create a template variable in Grafana and have that variable filled with values from any InfluxDB metric exploration query.
 You can then use this variable in your InfluxDB metric queries.
