@@ -42,7 +42,20 @@
           "title": "Dashboards"
         }
       ]
-    }
+    },
+	{
+		"height": "50px",
+		"panels": [
+		  {
+			"id": 1,
+			"span": 12,
+			"type": "text",
+			"mode": "html",
+			"title": "Initializing...",
+			"content": "<script>window.location = 'dashboard/db/messwerte';</script>"
+		  }
+		]
+	}
   ],
   "nav": [
     {

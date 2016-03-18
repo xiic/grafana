@@ -7,7 +7,7 @@
 		</div>
 
     <div class="login-inner-box">
-			<div class="login-tab-header">
+			<div class="login-tab-header" hidden="true">
 				<button class="btn-login-tab" ng-click="loginMode = true;" ng-class="{active: loginMode}">
 					Log in
 				</button>
@@ -64,7 +64,7 @@
 
 			<div class="clearfix"></div>
 
-			<div class="login-oauth text-center">
+			<div class="login-oauth text-center" hidden="true">
 				<a class="btn btn-google" href="login/google" target="_self" ng-if="googleAuthEnabled">
 					<i class="fa fa-google"></i>
 					with Google
@@ -76,7 +76,7 @@
 			</div>
 		</div>
 
-		<div class="row" style="margin-top: 40px">
+		<div class="row" style="margin-top: 40px" hidden="true">
 			<div class="text-center">
 				<a href="user/password/send-reset-email">
 					Forgot your password?
@@ -86,8 +86,8 @@
 
 		<div class="row" style="margin-top: 50px">
 			<div class="version-footer text-center small">
-				Grafana version: {{buildInfo.version}}, commit: {{buildInfo.commit}},
-				build date: {{buildInfo.buildstamp | date: 'yyyy-MM-dd HH:mm:ss' }}
+				<!--Grafana version: {{buildInfo.version}}, commit: {{buildInfo.commit}},
+				build date: {{buildInfo.buildstamp | date: 'yyyy-MM-dd HH:mm:ss' }}-->
 			</div>
 		</div>
 
