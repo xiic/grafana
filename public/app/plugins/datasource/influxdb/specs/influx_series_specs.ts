@@ -1,8 +1,5 @@
-///<amd-dependency path="app/plugins/datasource/influxdb/influx_series" name="InfluxSeries"/>
-
 import {describe, beforeEach, it, sinon, expect} from 'test/lib/common';
-
-declare var InfluxSeries: any;
+import InfluxSeries from '../influx_series';
 
 describe('when generating timeseries from influxdb response', function() {
 
@@ -183,6 +180,29 @@ describe('when generating timeseries from influxdb response', function() {
       var result = series.getTimeSeries();
 
       expect(result[0].target).to.be('alias: prod -> count');
+    });
+  });
+
+  describe('given table response', function() {
+    var options = {
+      alias: '',
+      series: [
+        {
+          name: 'app.prod.server1.count',
+          tags:  {datacenter: 'Africa', server: 'server2'},
+          columns: ['time', 'value2', 'value'],
+          values: [[1431946625000, 23, 10], [1431946626000, 25, 12]]
+        }
+      ]
+    };
+
+    it('should return table', function() {
+      var series = new InfluxSeries(options);
+      var table = series.getTable();
+
+      expect(table.type).to.be('table');
+      expect(table.columns.length).to.be(5);
+      expect(table.rows[0]).to.eql([1431946625000, 'Africa', 'server2', 23, 10]);
     });
   });
 

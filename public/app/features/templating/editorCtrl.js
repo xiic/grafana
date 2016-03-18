@@ -12,14 +12,18 @@ function (angular, _) {
     var replacementDefaults = {
       type: 'query',
       datasource: null,
-      refresh_on_load: false,
+      refresh: 0,
       name: '',
       options: [],
       includeAll: false,
-      allFormat: 'glob',
       multi: false,
-      multiFormat: 'glob',
     };
+
+    $scope.refreshOptions = [
+      {value: 0, text: "Never"},
+      {value: 1, text: "On Dashboard Load"},
+      {value: 2, text: "On Time Range Change"},
+    ];
 
     $scope.init = function() {
       $scope.mode = 'list';
@@ -94,6 +98,13 @@ function (angular, _) {
         $scope.current.type = 'query';
         $scope.current.allFormat = 'glob';
       }
+    };
+
+    $scope.duplicate = function(variable) {
+      $scope.current = angular.copy(variable);
+      $scope.variables.push($scope.current);
+      $scope.current.name = 'copy_of_'+variable.name;
+      $scope.updateSubmenuVisibility();
     };
 
     $scope.update = function() {

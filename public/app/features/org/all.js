@@ -1,7 +1,5 @@
 define([
-  './datasourcesCtrl',
-  './datasourceEditCtrl',
-  './orgUsersCtrl',
+  './org_users_ctrl',
   './newOrgCtrl',
   './userInviteCtrl',
   './orgApiKeysCtrl',

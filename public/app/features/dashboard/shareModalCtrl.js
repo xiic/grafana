@@ -1,8 +1,7 @@
-define([
-  'angular',
+define(['angular',
   'lodash',
   'require',
-  'config',
+  'app/core/config',
 ],
 function (angular, _, require, config) {
   'use strict';
@@ -12,7 +11,7 @@ function (angular, _, require, config) {
   module.controller('ShareModalCtrl', function($scope, $rootScope, $location, $timeout, timeSrv, $element, templateSrv, linkSrv) {
 
     $scope.options = { forCurrent: true, includeTemplateVars: true, theme: 'current' };
-    $scope.editor = { index: 0 };
+    $scope.editor = { index: $scope.tabIndex || 0};
 
     $scope.init = function() {
       $scope.modeSharePanel = $scope.panel ? true : false;
@@ -26,7 +25,7 @@ function (angular, _, require, config) {
         $scope.modalTitle = 'Share Dashboard';
       }
 
-      if (!$scope.dashboardMeta.isSnapshot) {
+      if (!$scope.dashboard.meta.isSnapshot) {
         $scope.tabs.push({title: 'Snapshot sharing', src: 'shareSnapshot.html'});
       }
 
@@ -72,6 +71,7 @@ function (angular, _, require, config) {
 
       var soloUrl = $scope.shareUrl;
       soloUrl = soloUrl.replace('/dashboard/', '/dashboard-solo/');
+      soloUrl = soloUrl.replace("&fullscreen", "");
 
       $scope.iframeHtml = '<iframe src="' + soloUrl + '" width="450" height="200" frameborder="0"></iframe>';
 
@@ -84,9 +84,9 @@ function (angular, _, require, config) {
 
   module.directive('clipboardButton',function() {
     return function(scope, elem) {
-      require(['ZeroClipboard'], function(ZeroClipboard) {
+      require(['vendor/zero_clipboard'], function(ZeroClipboard) {
         ZeroClipboard.config({
-          swfPath: config.appSubUrl + '/public/vendor/ZeroClipboard.swf'
+          swfPath: config.appSubUrl + '/public/vendor/zero_clipboard.swf'
         });
         new ZeroClipboard(elem[0]);
       });

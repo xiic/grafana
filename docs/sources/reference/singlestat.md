@@ -31,7 +31,7 @@ The coloring options of the Singlestat Panel config allow you to dynamically cha
 
 1. `Background`: This checkbox applies the configured thresholds and colors to the entirety of the Singlestat Panel background.
 2. `Value`: This checkbox applies the configured thresholds and colors to the summary stat.
-3. `Thresholds`: Change the background and value colors dynamically within the panel, depending on the Singlestat value. The threshold field accepts **3 comma-separated** values, corresponding to the three colors directly to the right.
+3. `Thresholds`: Change the background and value colors dynamically within the panel, depending on the Singlestat value. The threshold field accepts **2 comma-separated** values which represent 3 ranges that correspond to the three colors directly to the right. For example: if the thresholds are 70, 90 then the first color represents < 70, the second color represents between 70 and 90 and the third color represents > 90.
 4. `Colors`: Select a color and opacity
 5. `Invert order`: This link toggles the threshold color order.</br>For example: Green, Orange, Red (<img class="no-shadow" src="/img/v1/gyr.png">) will become Red, Orange, Green (<img class="no-shadow" src="/img/v1/ryg.png">).
 
@@ -54,4 +54,21 @@ Value to text mapping allows you to translate the value of the summary stat into
 
 <img class="no-shadow" src="/img/v1/Singlestat-ValueMapping.png">
 
+## Troubleshooting
 
+### Multiple Series Error
+
+<img class="no-shadow" src="/img/v2/Singlestat-MultiSeriesError.png">
+
+
+Grafana 2.5 introduced stricter checking for multiple-series on singlestat panels. In previous versions, the panel logic did not verify that only a single series was used, and instead, displayed the first series encountered. Depending on your data source, this could have lead to inconsistent data being shown and/or a general confusion about which metric was being displayed.
+
+To fix your singlestat panel:
+
+- Edit your panel by clicking the Panel Title and selecting *Edit*.
+
+- Do you have multiple queries in the metrics tab?
+    - Solution: Select a single query to visualize. You can toggle whether a query is visualized by clicking the eye icon on each line. If the error persists, continue to the next solution.
+
+- Do you have one query?
+    - Solution: This likely means your query is returning multiple series. You will want to reduce this down to a single series. This can be accomplished in many ways, depending on your data source. Some common practices include summing the series, averaging or any number of other functions. Consult the documentation for your data source for additional information.

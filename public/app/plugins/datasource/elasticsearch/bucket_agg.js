@@ -8,6 +8,20 @@ function (angular, _, queryDef) {
 
   var module = angular.module('grafana.directives');
 
+  module.directive('elasticBucketAgg', function() {
+    return {
+      templateUrl: 'public/app/plugins/datasource/elasticsearch/partials/bucket_agg.html',
+      controller: 'ElasticBucketAggCtrl',
+      restrict: 'E',
+      scope: {
+        target: "=",
+        index: "=",
+        onChange: "&",
+        getFields: "&",
+      }
+    };
+  });
+
   module.controller('ElasticBucketAggCtrl', function($scope, uiSegmentSrv, $q, $rootScope) {
     var bucketAggs = $scope.target.bucketAggs;
 
@@ -15,7 +29,6 @@ function (angular, _, queryDef) {
     $scope.bucketAggTypes = queryDef.bucketAggTypes;
     $scope.orderOptions = queryDef.orderOptions;
     $scope.sizeOptions = queryDef.sizeOptions;
-    $scope.intervalOptions = queryDef.intervalOptions;
 
     $rootScope.onAppEvent('elastic-query-updated', function() {
       $scope.validateModel();
@@ -93,8 +106,21 @@ function (angular, _, queryDef) {
         }
         case 'date_histogram': {
           settings.interval = settings.interval || 'auto';
+          settings.min_doc_count = settings.min_doc_count || 0;
           $scope.agg.field = $scope.target.timeField;
           settingsLinkText = 'Interval: ' + settings.interval;
+
+          if (settings.min_doc_count > 0) {
+            settingsLinkText += ', Min Doc Count: ' + settings.min_doc_count;
+          }
+
+          if (settings.trimEdges === undefined || settings.trimEdges < 0) {
+            settings.trimEdges = 0;
+          }
+
+          if (settings.trimEdges && settings.trimEdges > 0) {
+            settingsLinkText += ', Trim edges: ' + settings.trimEdges;
+          }
         }
       }
 
@@ -126,6 +152,10 @@ function (angular, _, queryDef) {
       } else {
         return $scope.getFields();
       }
+    };
+
+    $scope.getIntervalOptions = function() {
+      return $q.when(uiSegmentSrv.transformToSegments(true, 'interval')(queryDef.intervalOptions));
     };
 
     $scope.addBucketAgg = function() {

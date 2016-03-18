@@ -1,23 +1,48 @@
-///<amd-dependency path="./directives/annotation_tooltip" />
-///<amd-dependency path="./directives/body_class" />
-///<amd-dependency path="./directives/config_modal" />
-///<amd-dependency path="./directives/confirm_click" />
-///<amd-dependency path="./directives/dash_edit_link" />
-///<amd-dependency path="./directives/dash_upload" />
-///<amd-dependency path="./directives/dropdown_typeahead" />
-///<amd-dependency path="./directives/grafana_version_check" />
-///<amd-dependency path="./directives/metric_segment" />
-///<amd-dependency path="./directives/misc" />
-///<amd-dependency path="./directives/ng_model_on_blur" />
-///<amd-dependency path="./directives/password_strenght" />
-///<amd-dependency path="./directives/spectrum_picker" />
-///<amd-dependency path="./directives/tags" />
-///<amd-dependency path="./directives/topnav" />
-///<amd-dependency path="./directives/value_select_dropdown" />
-///<amd-dependency path="./routes/all" />
+///<reference path="../headers/common.d.ts" />
+///<reference path="./mod_defs.d.ts" />
 
-export * from './directives/array_join'
-export * from './directives/give_focus'
-export * from './filters/filters'
+import "./directives/annotation_tooltip";
+import "./directives/dash_class";
+import "./directives/confirm_click";
+import "./directives/dash_edit_link";
+import "./directives/dash_upload";
+import "./directives/dropdown_typeahead";
+import "./directives/grafana_version_check";
+import "./directives/metric_segment";
+import "./directives/misc";
+import "./directives/ng_model_on_blur";
+import "./directives/password_strenght";
+import "./directives/spectrum_picker";
+import "./directives/tags";
+import "./directives/value_select_dropdown";
+import "./directives/plugin_component";
+import "./directives/rebuild_on_change";
+import "./directives/give_focus";
+import './jquery_extended';
+import './partials';
 
+import {grafanaAppDirective} from './components/grafana_app';
+import {sideMenuDirective} from './components/sidemenu/sidemenu';
+import {searchDirective} from './components/search/search';
+import {infoPopover} from './components/info_popover';
+import {colorPicker} from './components/colorpicker';
+import {navbarDirective} from './components/navbar/navbar';
+import {arrayJoin} from './directives/array_join';
+import {layoutSelector} from './components/layout_selector/layout_selector';
+import 'app/core/controllers/all';
+import 'app/core/services/all';
+import 'app/core/routes/routes';
+import './filters/filters';
+import coreModule from './core_module';
 
+export {
+  arrayJoin,
+  coreModule,
+  grafanaAppDirective,
+  sideMenuDirective,
+  navbarDirective,
+  searchDirective,
+  colorPicker,
+  layoutSelector,
+  infoPopover
+};

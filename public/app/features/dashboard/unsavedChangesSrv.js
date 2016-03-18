@@ -122,11 +122,7 @@ function(angular, _) {
       var currentJson = angular.toJson(current);
       var originalJson = angular.toJson(original);
 
-      if (currentJson !== originalJson) {
-        return true;
-      }
-
-      return false;
+      return currentJson !== originalJson;
     };
 
     p.open_modal = function() {
@@ -143,8 +139,8 @@ function(angular, _) {
       };
 
       $rootScope.appEvent('show-modal', {
-        src: './app/partials/unsaved-changes.html',
-        modalClass: 'modal-no-header confirm-modal',
+        src: 'public/app/partials/unsaved-changes.html',
+        modalClass: 'confirm-modal',
         scope: modalScope,
       });
     };

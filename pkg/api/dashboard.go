@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/grafana/pkg/util"
 )
 
-func isDasboardStarredByUser(c *middleware.Context, dashId int64) (bool, error) {
+func isDashboardStarredByUser(c *middleware.Context, dashId int64) (bool, error) {
 	if !c.IsSignedIn {
 		return false, nil
 	}
@@ -41,13 +41,23 @@ func GetDashboard(c *middleware.Context) {
 		return
 	}
 
-	isStarred, err := isDasboardStarredByUser(c, query.Result.Id)
+	isStarred, err := isDashboardStarredByUser(c, query.Result.Id)
 	if err != nil {
 		c.JsonApiErr(500, "Error while checking if dashboard was starred by user", err)
 		return
 	}
 
 	dash := query.Result
+
+	// Finding creator and last updater of the dashboard
+	updater, creator := "Anonymous", "Anonymous"
+	if dash.UpdatedBy > 0 {
+		updater = getUserLogin(dash.UpdatedBy)
+	}
+	if dash.CreatedBy > 0 {
+		creator = getUserLogin(dash.CreatedBy)
+	}
+
 	dto := dtos.DashboardFullWithMeta{
 		Dashboard: dash.Data,
 		Meta: dtos.DashboardMeta{
@@ -57,10 +67,26 @@ func GetDashboard(c *middleware.Context) {
 			CanStar:   c.IsSignedIn,
 			CanSave:   c.OrgRole == m.ROLE_ADMIN || c.OrgRole == m.ROLE_EDITOR,
 			CanEdit:   canEditDashboard(c.OrgRole),
+			Created:   dash.Created,
+			Updated:   dash.Updated,
+			UpdatedBy: updater,
+			CreatedBy: creator,
+			Version:   dash.Version,
 		},
 	}
 
 	c.JSON(200, dto)
+}
+
+func getUserLogin(userId int64) string {
+	query := m.GetUserByIdQuery{Id: userId}
+	err := bus.Dispatch(&query)
+	if err != nil {
+		return "Anonymous"
+	} else {
+		user := query.Result
+		return user.Login
+	}
 }
 
 func DeleteDashboard(c *middleware.Context) {
@@ -85,6 +111,12 @@ func DeleteDashboard(c *middleware.Context) {
 
 func PostDashboard(c *middleware.Context, cmd m.SaveDashboardCommand) {
 	cmd.OrgId = c.OrgId
+
+	if !c.IsSignedIn {
+		cmd.UserId = -1
+	} else {
+		cmd.UserId = c.UserId
+	}
 
 	dash := cmd.GetDashboardModel()
 	if dash.Id == 0 {

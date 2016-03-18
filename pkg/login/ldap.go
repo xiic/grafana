@@ -35,7 +35,7 @@ func (a *ldapAuther) Dial() error {
 				return err
 			} else {
 				if !certPool.AppendCertsFromPEM(pem) {
-					return errors.New("Failed to append CA certficate " + caCertFile)
+					return errors.New("Failed to append CA certificate " + caCertFile)
 				}
 			}
 		}
@@ -131,8 +131,8 @@ func (a *ldapAuther) getGrafanaUserFor(ldapUser *ldapUserInfo) (*m.User, error) 
 	}
 
 	return userQuery.Result, nil
-}
 
+}
 func (a *ldapAuther) createGrafanaUser(ldapUser *ldapUserInfo) (*m.User, error) {
 	cmd := m.CreateUserCommand{
 		Login: ldapUser.Username,

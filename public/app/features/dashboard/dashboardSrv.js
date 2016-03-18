@@ -1,11 +1,10 @@
 define([
   'angular',
   'jquery',
-  'kbn',
   'lodash',
   'moment',
 ],
-function (angular, $, kbn, _, moment) {
+function (angular, $, _, moment) {
   'use strict';
 
   var module = angular.module('grafana.services');
@@ -27,7 +26,7 @@ function (angular, $, kbn, _, moment) {
       this.tags = data.tags || [];
       this.style = data.style || "dark";
       this.timezone = data.timezone || 'browser';
-      this.editable = data.editable === false ? false : true;
+      this.editable = data.editable !== false;
       this.hideControls = data.hideControls || false;
       this.sharedCrosshair = data.sharedCrosshair || false;
       this.rows = data.rows || [];
@@ -49,10 +48,10 @@ function (angular, $, kbn, _, moment) {
     p._initMeta = function(meta) {
       meta = meta || {};
 
-      meta.canShare = meta.canShare === false ? false : true;
-      meta.canSave = meta.canSave === false ? false : true;
-      meta.canStar = meta.canStar === false ? false : true;
-      meta.canEdit = meta.canEdit === false ? false : true;
+      meta.canShare = meta.canShare !== false;
+      meta.canSave = meta.canSave !== false;
+      meta.canStar = meta.canStar !== false;
+      meta.canEdit = meta.canEdit !== false;
 
       if (!this.editable) {
         meta.canEdit = false;
@@ -141,7 +140,11 @@ function (angular, $, kbn, _, moment) {
     };
 
     p.isSubmenuFeaturesEnabled = function() {
-      return this.templating.list.length > 0 || this.annotations.list.length > 0 || this.links.length > 0;
+      var visableTemplates = _.filter(this.templating.list, function(template) {
+        return template.hideVariable === undefined || template.hideVariable === false;
+      });
+
+      return visableTemplates.length > 0 || this.annotations.list.length > 0 || this.links.length > 0;
     };
 
     p.getPanelInfoById = function(panelId) {
@@ -152,7 +155,6 @@ function (angular, $, kbn, _, moment) {
             result.panel = panel;
             result.row = row;
             result.index = index;
-            return;
           }
         });
       });
@@ -179,6 +181,23 @@ function (angular, $, kbn, _, moment) {
       return newPanel;
     };
 
+    p.formatDate = function(date, format) {
+      date = moment.isMoment(date) ? date : moment(date);
+      format = format || 'YYYY-MM-DD HH:mm:ss';
+
+      return this.timezone === 'browser' ?
+        moment(date).format(format) :
+        moment.utc(date).format(format);
+    };
+
+    p.getRelativeTime = function(date) {
+      date = moment.isMoment(date) ? date : moment(date);
+
+      return this.timezone === 'browser' ?
+        moment(date).fromNow() :
+        moment.utc(date).fromNow();
+    };
+
     p.getNextQueryLetter = function(panel) {
       var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -189,51 +208,13 @@ function (angular, $, kbn, _, moment) {
       });
     };
 
-    p.addDataQueryTo = function(panel, datasource) {
-      var target = {
-        refId: this.getNextQueryLetter(panel)
-      };
-
-      if (datasource) {
-        target.datasource = datasource.name;
-      }
-
-      panel.targets.push(target);
-    };
-
-    p.removeDataQuery = function (panel, query) {
-      panel.targets = _.without(panel.targets, query);
-    };
-
-    p.duplicateDataQuery = function(panel, query) {
-      var clone = angular.copy(query);
-      clone.refId = this.getNextQueryLetter(panel);
-      panel.targets.push(clone);
-    };
-
-    p.moveDataQuery = function(panel, fromIndex, toIndex) {
-      _.move(panel.targets, fromIndex, toIndex);
-    };
-
-    p.formatDate = function(date, format) {
-      if (!moment.isMoment(date)) {
-        date = moment(date);
-      }
-
-      format = format || 'YYYY-MM-DD HH:mm:ss';
-
-      return this.timezone === 'browser' ?
-        moment(date).format(format) :
-        moment.utc(date).format(format);
-    };
-
     p._updateSchema = function(old) {
       var i, j, k;
       var oldVersion = this.schemaVersion;
       var panelUpgrades = [];
-      this.schemaVersion = 7;
+      this.schemaVersion = 11;
 
-      if (oldVersion === 7) {
+      if (oldVersion === this.schemaVersion) {
         return;
       }
 
@@ -341,6 +322,90 @@ function (angular, $, kbn, _, moment) {
               target.refId = this.getNextQueryLetter(panel);
             }
           }, this);
+        });
+      }
+
+      if (oldVersion < 8) {
+        panelUpgrades.push(function(panel) {
+          _.each(panel.targets, function(target) {
+            // update old influxdb query schema
+            if (target.fields && target.tags && target.groupBy) {
+              if (target.rawQuery) {
+                delete target.fields;
+                delete target.fill;
+              } else {
+                target.select = _.map(target.fields, function(field) {
+                  var parts = [];
+                  parts.push({type: 'field', params: [field.name]});
+                  parts.push({type: field.func, params: []});
+                  if (field.mathExpr) {
+                    parts.push({type: 'math', params: [field.mathExpr]});
+                  }
+                  if (field.asExpr) {
+                    parts.push({type: 'alias', params: [field.asExpr]});
+                  }
+                  return parts;
+                });
+                delete target.fields;
+                _.each(target.groupBy, function(part) {
+                  if (part.type === 'time' && part.interval)  {
+                    part.params = [part.interval];
+                    delete part.interval;
+                  }
+                  if (part.type === 'tag' && part.key) {
+                    part.params = [part.key];
+                    delete part.key;
+                  }
+                });
+
+                if (target.fill) {
+                  target.groupBy.push({type: 'fill', params: [target.fill]});
+                  delete target.fill;
+                }
+              }
+            }
+          });
+        });
+      }
+
+      // schema version 9 changes
+      if (oldVersion < 9) {
+        // move aliasYAxis changes
+        panelUpgrades.push(function(panel) {
+          if (panel.type !== 'singlestat' && panel.thresholds !== "") { return; }
+
+          if (panel.thresholds) {
+            var k = panel.thresholds.split(",");
+
+            if (k.length >= 3) {
+              k.shift();
+              panel.thresholds = k.join(",");
+            }
+          }
+        });
+      }
+
+      // schema version 10 changes
+      if (oldVersion < 10) {
+        // move aliasYAxis changes
+        panelUpgrades.push(function(panel) {
+          if (panel.type !== 'table') { return; }
+
+          _.each(panel.styles, function(style) {
+            if (style.thresholds && style.thresholds.length >= 3) {
+              var k = style.thresholds;
+              k.shift();
+              style.thresholds = k;
+            }
+          });
+        });
+      }
+
+      if (oldVersion < 11) {
+        // update template variables
+        _.each(this.templating.list, function(templateVariable) {
+          if (templateVariable.refresh) { templateVariable.refresh = 1; }
+          if (!templateVariable.refresh) { templateVariable.refresh = 0; }
         });
       }
 

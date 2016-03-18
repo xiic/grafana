@@ -1,18 +1,24 @@
-///<amd-dependency path="app/plugins/datasource/graphite/datasource" />
-///<amd-dependency path="test/specs/helpers" name="helpers" />
 
 import {describe, beforeEach, it, sinon, expect, angularMocks} from 'test/lib/common';
-declare var helpers: any;
+import helpers from 'test/specs/helpers';
+import {GraphiteDatasource} from "../datasource";
 
 describe('graphiteDatasource', function() {
   var ctx = new helpers.ServiceTestContext();
+  var instanceSettings: any = {url: ['']};
 
+  beforeEach(angularMocks.module('grafana.core'));
   beforeEach(angularMocks.module('grafana.services'));
   beforeEach(ctx.providePhase(['backendSrv']));
+  beforeEach(angularMocks.inject(function($q, $rootScope, $httpBackend, $injector) {
+    ctx.$q = $q;
+    ctx.$httpBackend =  $httpBackend;
+    ctx.$rootScope = $rootScope;
+    ctx.$injector = $injector;
+  }));
 
-  beforeEach(ctx.createService('GraphiteDatasource'));
   beforeEach(function() {
-    ctx.ds = new ctx.service({ url: [''] });
+    ctx.ds = ctx.$injector.instantiate(GraphiteDatasource, {instanceSettings: instanceSettings});
   });
 
   describe('When querying influxdb with one target using query editor target spec', function() {
@@ -64,6 +70,12 @@ describe('graphiteDatasource', function() {
   });
 
   describe('building graphite params', function() {
+    it('should return empty array if no targets', function() {
+      var results = ctx.ds.buildGraphiteParams({
+        targets: [{}]
+      });
+      expect(results.length).to.be(0);
+    });
 
     it('should uri escape targets', function() {
       var results = ctx.ds.buildGraphiteParams({
