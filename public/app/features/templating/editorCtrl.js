@@ -17,6 +17,8 @@ function (angular, _) {
       options: [],
       includeAll: false,
       multi: false,
+      columnValue: '',
+      columnText: '',
     };
 
     $scope.refreshOptions = [

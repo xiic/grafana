@@ -38,7 +38,7 @@ function (angular, _, coreModule, store, config) {
     }
 
     this.version = config.buildInfo.version;
-    this.lightTheme = false;
+    this.lightTheme = true;
     this.user = new User();
     this.isSignedIn = this.user.isSignedIn;
     this.isGrafanaAdmin = this.user.isGrafanaAdmin;
